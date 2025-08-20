@@ -28,7 +28,10 @@ const app = express();
 // Middleware
 app.use(
   cors({
-    origin: '*', // Adjust in production
+    origin: [
+      'https://u838148329.taskhub.online', // <-- Your deployed frontend domain
+      'http://localhost:3000'
+    ],
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   })
 );
