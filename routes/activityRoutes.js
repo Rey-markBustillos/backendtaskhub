@@ -30,7 +30,7 @@ const activityCloudinaryStorage = new CloudinaryStorage({
 
     return {
       folder: "taskhub/activities",
-      public_id: `activity-${Date.now()}.${ext}`,  // ✅ Extension in public_id
+      public_id: `activity-${Date.now()}`,  // ✅ Cloudinary adds extension automatically
       resource_type: isDoc ? "raw" : "image",
       access_mode: "public",  // ✅ Ensure files are publicly accessible
       type: "upload",
