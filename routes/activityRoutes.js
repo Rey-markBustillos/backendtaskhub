@@ -25,13 +25,10 @@ console.log('- API Secret:', process.env.CLOUDINARY_API_SECRET ? '✅ Loaded' : 
 const activityCloudinaryStorage = new CloudinaryStorage({
   cloudinary,
   params: async (req, file) => {
-    const ext = (file.originalname.split(".").pop() || "").toLowerCase();
-    const isDoc = /^(pdf|doc|docx|ppt|pptx|xls|xlsx|txt|zip|rar)$/i.test(ext);
-
     return {
       folder: "taskhub/activities",
       public_id: `activity-${Date.now()}`,  // ✅ Cloudinary adds extension automatically
-      resource_type: isDoc ? "raw" : "image",
+      resource_type: 'auto',  // ✅ Auto-detect: handles PDFs, images, and all document types
       access_mode: "public",  // ✅ Ensure files are publicly accessible
       type: "upload",
     };
