@@ -20,13 +20,15 @@ cloudinary.config({
 // Cloudinary storage configuration for modules
 const moduleCloudinaryStorage = new CloudinaryStorage({
   cloudinary,
-  params: async (req, file) => ({
-    folder: "taskhub/modules",
-    public_id: `module-${Date.now()}`,
-    resource_type: "raw", // All module files are stored as raw since they're documents
-    access_mode: "public",  // ✅ Ensure files are publicly accessible
-    type: "upload",
-  }),
+  params: async (req, file) => {
+    return {
+      folder: "taskhub/modules",
+      public_id: `module-${Date.now()}`,
+      resource_type: 'auto',  // ✅ Auto-detect: handles PDFs, documents, and all file types
+      access_mode: "public",
+      type: "upload",
+    };
+  },
 });
 
 // Keep legacy local storage for backward compatibility
@@ -446,6 +448,42 @@ router.get('/debug/fix-paths', async (req, res) => {
     });
   } catch (error) {
     console.error('Error in debug endpoint:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// Cleanup endpoint - Delete all modules without Cloudinary URL
+router.get('/cleanup/legacy', async (req, res) => {
+  try {
+    // Find all modules without cloudinaryUrl
+    const legacyModules = await Module.find({ 
+      $or: [
+        { cloudinaryUrl: { $exists: false } },
+        { cloudinaryUrl: null },
+        { cloudinaryUrl: '' }
+      ]
+    });
+    
+    console.log(`🗑️ Found ${legacyModules.length} legacy modules to delete`);
+    
+    // Delete them
+    const result = await Module.deleteMany({
+      $or: [
+        { cloudinaryUrl: { $exists: false } },
+        { cloudinaryUrl: null },
+        { cloudinaryUrl: '' }
+      ]
+    });
+    
+    console.log(`✅ Deleted ${result.deletedCount} legacy modules`);
+    
+    res.json({
+      message: 'Legacy modules cleaned up successfully',
+      deletedCount: result.deletedCount,
+      modules: legacyModules.map(m => ({ id: m._id, title: m.title, fileName: m.fileName }))
+    });
+  } catch (error) {
+    console.error('❌ Error cleaning up legacy modules:', error);
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 });
